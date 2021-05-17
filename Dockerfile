@@ -1,29 +1,30 @@
 FROM python:3.8.5
 
-ENV PYTHONBUFFERED 1
-ENV PYTHONWRITEBYTECODE 1
 
-RUN apt-get update && apt-get install -y netcat
+# tensorflow for macos
+RUN curl -fLO https://github.com/apple/tensorflow_macos/releases/download/v0.1alpha2/tensorflow_macos-${VERSION}.tar.gz
+RUN tar xvzf tensorflow_macos-${VERSION}.tar
+RUN cd tensorflow_macos
+RUN ./install_venv.sh --prompt
 
-# Create an app user in the app group. 
-RUN useradd --user-group --create-home --no-log-init --shell /bin/bash app
+# django env variables
+# ENV PYTHONBUFFERED 1
+# ENV PYTHONWRITEBYTECODE 1
 
-ENV APP_HOME=/home/app/web
 
-# Create the staticfiles directory. This avoids permission errors. 
-RUN mkdir -p $APP_HOME/staticfiles
+ENV DEEPDREAM_HOME=/deepdream
+
 
 # Change the workdir.
-WORKDIR $APP_HOME
+WORKDIR $DEEPDREAM_HOME
 
-COPY requirements.txt $APP_HOME
+COPY requirements.txt $DEEPDREAM_HOME
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-COPY . $APP_HOME
-RUN chown -R app:app $APP_HOME
+COPY . $DEEPDREAM_HOME
+# RUN chown -R app:app $APP_HOME
 
-USER app:app
 
-ENTRYPOINT ["/home/app/web/entrypoint.sh"]
+# ENTRYPOINT ["/home/app/web/entrypoint.sh"]
 # CMD ["uwsgi", "--http", ":8080", "--ini", "./uwsgi/uwsgi.ini"]
